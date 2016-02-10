@@ -112,7 +112,6 @@
     <Content Include="header.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="ConnectionDialog.xaml">
