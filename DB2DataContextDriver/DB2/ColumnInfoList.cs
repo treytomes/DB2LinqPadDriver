@@ -9,7 +9,7 @@ namespace DB2DataContextDriver.DB2
 	{
 		#region Constants
 
-		private const string SQL = "SELECT * FROM SYSIBM.SYSCOLUMNS WHERE TBNAME='{0}' ORDER BY COLNO";
+		//private const string SQL = "SELECT * FROM SYSIBM.SYSCOLUMNS WHERE TBNAME='{0}' ORDER BY COLNO";
 
 		#endregion
 
@@ -23,21 +23,28 @@ namespace DB2DataContextDriver.DB2
 		/// <summary>
 		/// This connection is owned by TableInfoList.
 		/// </summary>
-		private DB2Connection _connection;
+		//private DB2Connection _connection;
 
-		private DB2Command _command;
+		//private DB2Command _command;
+
+		private IEnumerable<DataRow> _data;
 
 		#endregion
 
 		#region Constructors
 
-		internal ColumnInfoList(DB2Connection connection, string tableName)
-		{
-			_connection = connection;
+		//internal ColumnInfoList(DB2Connection connection, string tableName)
+		//{
+		//	_connection = connection;
 
-			_command = _connection.CreateCommand();
-			_command.CommandType = CommandType.Text;
-			_command.CommandText = string.Format(SQL, tableName);
+		//	_command = _connection.CreateCommand();
+		//	_command.CommandType = CommandType.Text;
+		//	_command.CommandText = string.Format(SQL, tableName);
+		//}
+
+		internal ColumnInfoList(IEnumerable<DataRow> data)
+		{
+			_data = data;
 		}
 
 		#endregion
@@ -48,8 +55,8 @@ namespace DB2DataContextDriver.DB2
 		{
 			if (!_disposedValue)
 			{
-				_command.Dispose();
-				_command = null;
+				//_command.Dispose();
+				//_command = null;
 
 				_disposedValue = true;
 			}
@@ -57,14 +64,20 @@ namespace DB2DataContextDriver.DB2
 
 		public IEnumerator<ColumnInfo> GetEnumerator()
 		{
-			using (var reader = _command.ExecuteReader())
+			foreach (var row in _data)
 			{
-				while (reader.Read())
-				{
-					yield return new ColumnInfo(reader);
-				}
+				yield return new ColumnInfo(row);
 			}
 			yield break;
+
+			//using (var reader = _command.ExecuteReader())
+			//{
+			//	while (reader.Read())
+			//	{
+			//		yield return new ColumnInfo(reader);
+			//	}
+			//}
+			//yield break;
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()

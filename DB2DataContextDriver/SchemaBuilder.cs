@@ -6,10 +6,8 @@ using System.Reflection;
 using System.Xml.Linq;
 using LINQPad.Extensibility.DataContext;
 using Microsoft.CSharp;
-using IBM.Data.DB2;
 using System.Data;
 using DB2DataContextDriver.CodeGen;
-using System.Text;
 using DB2DataContextDriver.DB2;
 using System.IO;
 

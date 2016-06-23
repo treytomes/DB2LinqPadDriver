@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Collections;
+using System.Linq;
 
 namespace DB2DataContextDriver.DB2
 {
@@ -10,8 +11,11 @@ namespace DB2DataContextDriver.DB2
 	{
 		#region Constants
 
-		private const string SQL_W_SCHEMA = "SELECT * FROM SYSIBM.SYSTABLES WHERE TYPE='T' AND CREATOR='{0}' ORDER BY NAME";
-		private const string SQL_WO_SCHEMA = "SELECT * FROM SYSIBM.SYSTABLES WHERE TYPE='T' ORDER BY NAME";
+		//private const string SQL_W_SCHEMA = "SELECT * FROM SYSIBM.SYSTABLES WHERE TYPE='T' AND CREATOR='{0}' ORDER BY NAME";
+		//private const string SQL_WO_SCHEMA = "SELECT * FROM SYSIBM.SYSTABLES WHERE TYPE='T' ORDER BY NAME";
+
+		private const string SQL_W_SCHEMA = "SELECT t.NAME as TBNAME, t.REMARKS AS TBREMARKS, COLNO, COLTYPE, KEYSEQ, c.NAME AS COLNAME, c.REMARKS AS COLREMARKS FROM SYSIBM.SYSCOLUMNS c INNER JOIN SYSIBM.SYSTABLES t ON t.NAME=c.TBNAME AND t.TYPE='T' AND CREATOR='{0}' ORDER BY t.NAME, COLNO";
+		private const string SQL_WO_SCHEMA = "SELECT t.NAME as TBNAME, t.REMARKS AS TBREMARKS, COLNO, COLTYPE, KEYSEQ, c.NAME AS COLNAME, c.REMARKS AS COLREMARKS FROM SYSIBM.SYSCOLUMNS c INNER JOIN SYSIBM.SYSTABLES t ON t.NAME=c.TBNAME AND t.TYPE='T' ORDER BY t.NAME, COLNO";
 
 		#endregion
 
@@ -22,9 +26,7 @@ namespace DB2DataContextDriver.DB2
 		/// </summary>
 		private bool _disposedValue = false;
 
-		private string _connectionString;
-		private DB2Connection _connection;
-		private DB2Command _command;
+		private DataTable _data;
 
 		#endregion
 
@@ -32,21 +34,36 @@ namespace DB2DataContextDriver.DB2
 
 		public TableInfoList(string connectionString, string schema = null)
 		{
-			_connectionString = connectionString;
+			//_connectionString = connectionString;
 
-			_connection = new DB2Connection(_connectionString);
-			_connection.Open();
-
-			_command = _connection.CreateCommand();
-			_command.CommandType = CommandType.Text;
-
-			if (string.IsNullOrWhiteSpace(schema))
+			using (var cn = new DB2Connection(connectionString))
 			{
-				_command.CommandText = SQL_WO_SCHEMA;
-			}
-			else
-			{
-				_command.CommandText = string.Format(SQL_W_SCHEMA, schema);
+				cn.Open();
+
+				using (var cm = cn.CreateCommand())
+				{
+					cm.CommandType = CommandType.Text;
+
+					if (string.IsNullOrWhiteSpace(schema))
+					{
+						cm.CommandText = SQL_WO_SCHEMA;
+					}
+					else
+					{
+						cm.CommandText = string.Format(SQL_W_SCHEMA, schema);
+					}
+
+					using (var a = new DB2DataAdapter(cm))
+					{
+						_data = new DataTable();
+						a.Fill(_data);
+					}
+
+					//using (var reader = cm.ExecuteReader())
+					//{
+					//	_data.Load(reader);
+					//}
+				}
 			}
 		}
 
@@ -63,12 +80,12 @@ namespace DB2DataContextDriver.DB2
 		{
 			if (!_disposedValue)
 			{
-				_command.Dispose();
-				_command = null;
+				//_command.Dispose();
+				//_command = null;
 
-				_connection.Close();
-				_connection.Dispose();
-				_connection = null;
+				//_connection.Close();
+				//_connection.Dispose();
+				//_connection = null;
 
 				_disposedValue = true;
 			}
@@ -76,13 +93,19 @@ namespace DB2DataContextDriver.DB2
 
 		public IEnumerator<TableInfo> GetEnumerator()
 		{
-			using (var reader = _command.ExecuteReader())
+			//using (var reader = _command.ExecuteReader())
+			//{
+			//	while (reader.Read())
+			//	{
+			//		yield return new TableInfo(_connection, reader);
+			//	}
+			//}
+
+			foreach (var tableGroup in _data.AsEnumerable().GroupBy(x => x.Field<string>("TBNAME")))
 			{
-				while (reader.Read())
-				{
-					yield return new TableInfo(_connection, reader);
-				}
+				yield return new TableInfo(tableGroup);
 			}
+
 			yield break;
 		}
 

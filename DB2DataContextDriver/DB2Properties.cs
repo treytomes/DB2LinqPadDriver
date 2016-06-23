@@ -2,15 +2,21 @@
 using LINQPad.Extensibility.DataContext;
 using System;
 using System.ComponentModel;
-using GalaSoft.MvvmLight;
+using System.Runtime.CompilerServices;
 
 namespace DB2DataContextDriver
 {
 	/// <summary>
 	/// Wrapper to expose typed properties over ConnectionInfo.DriverData.
 	/// </summary>
-	public class DB2Properties : ViewModelBase, IEquatable<DB2Properties>, INotifyPropertyChanged, IDataErrorInfo
+	public class DB2Properties : IEquatable<DB2Properties>, INotifyPropertyChanged, IDataErrorInfo
 	{
+		#region Events
+
+		public event PropertyChangedEventHandler PropertyChanged;
+
+		#endregion
+
 		#region Fields
 
 		private readonly IConnectionInfo _cxInfo;
@@ -41,7 +47,7 @@ namespace DB2DataContextDriver
 				if (_cxInfo.Persist != value)
 				{
 					_cxInfo.Persist = value;
-					RaisePropertyChanged("Persist");
+					RaisePropertyChanged();
 				}
 			}
 		}
@@ -50,15 +56,15 @@ namespace DB2DataContextDriver
 		{
 			get
 			{
-				return (string)_driverData.Element("ServerName") ?? string.Empty;
+				return (string)_driverData.Element(nameof(ServerName)) ?? string.Empty;
 			}
 			set
 			{
 				if (ServerName != value)
 				{
-					_driverData.SetElementValue("ServerName", value.ToUpper());
+					_driverData.SetElementValue(nameof(ServerName), value.ToUpper());
 					_cxInfo.DatabaseInfo.CustomCxString = GetConnectionString();
-					RaisePropertyChanged(() => ServerName);
+					RaisePropertyChanged();
 				}
 			}
 		}
@@ -67,15 +73,15 @@ namespace DB2DataContextDriver
 		{
 			get
 			{
-				return (string)_driverData.Element("Database") ?? string.Empty;
+				return (string)_driverData.Element(nameof(Database)) ?? string.Empty;
 			}
 			set
 			{
 				if (Database != value)
 				{
-					_driverData.SetElementValue("Database", value.ToUpper());
+					_driverData.SetElementValue(nameof(Database), value.ToUpper());
 					_cxInfo.DatabaseInfo.CustomCxString = GetConnectionString();
-					RaisePropertyChanged(() => Database);
+					RaisePropertyChanged();
 				}
 			}
 		}
@@ -84,7 +90,7 @@ namespace DB2DataContextDriver
 		{
 			get
 			{
-				return (string)_driverData.Element("UserId") ?? string.Empty;
+				return (string)_driverData.Element(nameof(UserId)) ?? string.Empty;
 			}
 			set
 			{
@@ -93,7 +99,7 @@ namespace DB2DataContextDriver
 					value = value.ToUpper();
 					var oldUserId = UserId;
 
-					_driverData.SetElementValue("UserId", value);
+					_driverData.SetElementValue(nameof(UserId), value);
 					_cxInfo.DatabaseInfo.CustomCxString = GetConnectionString();
 
 					// By default, set the Schema/CREATOR field to the UserId.  This will usually be correct.
@@ -102,7 +108,7 @@ namespace DB2DataContextDriver
 						Schema = value;
 					}
 
-					RaisePropertyChanged(() => UserId);
+					RaisePropertyChanged();
 				}
 			}
 		}
@@ -111,14 +117,14 @@ namespace DB2DataContextDriver
 		{
 			get
 			{
-				return (string)_driverData.Element("Schema") ?? string.Empty;
+				return (string)_driverData.Element(nameof(Schema)) ?? string.Empty;
 			}
 			set
 			{
 				if (Schema != value)
 				{
-					_driverData.SetElementValue("Schema", value.ToUpper());
-					RaisePropertyChanged(() => Schema);
+					_driverData.SetElementValue(nameof(Schema), value.ToUpper());
+					RaisePropertyChanged();
 				}
 			}
 		}
@@ -127,15 +133,15 @@ namespace DB2DataContextDriver
 		{
 			get
 			{
-				return _cxInfo.Decrypt((string)_driverData.Element("Password") ?? string.Empty);
+				return _cxInfo.Decrypt((string)_driverData.Element(nameof(Password)) ?? string.Empty);
 			}
 			set
 			{
 				if (Password != value)
 				{
-					_driverData.SetElementValue("Password", _cxInfo.Encrypt(value));
+					_driverData.SetElementValue(nameof(Password), _cxInfo.Encrypt(value));
 					_cxInfo.DatabaseInfo.CustomCxString = GetConnectionString();
-					RaisePropertyChanged(() => Password);
+					RaisePropertyChanged();
 				}
 			}
 		}
@@ -164,11 +170,11 @@ namespace DB2DataContextDriver
 		{
 			get
 			{
-				if (columnName == "Persist")
+				if (columnName == nameof(Persist))
 				{
 					return string.Empty;
 				}
-				else if (columnName == "Password")
+				else if (columnName == nameof(Password))
 				{
 					if (string.IsNullOrWhiteSpace(Password))
 					{
@@ -218,6 +224,11 @@ namespace DB2DataContextDriver
 		public override int GetHashCode()
 		{
 			return GetConnectionString().GetHashCode();
+		}
+
+		private void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+		{
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 
 		#endregion

@@ -1,5 +1,6 @@
 ﻿using IBM.Data.DB2;
 using System;
+using System.Data;
 using System.Linq;
 
 namespace DB2DataContextDriver.DB2
@@ -8,14 +9,24 @@ namespace DB2DataContextDriver.DB2
 	{
 		#region Constructors
 
-		internal ColumnInfo(DB2DataReader reader)
+		//internal ColumnInfo(DB2DataReader reader)
+		//{
+		//	ColumnNumber = Convert.ToInt32(reader.GetValue(reader.GetOrdinal("COLNO")));
+		//	SqlColumnType = Convert.ToString(reader.GetValue(reader.GetOrdinal("COLTYPE")));
+		//	DotNetColumnType = GetTypeFromDB2(SqlColumnType);
+		//	IsPrimary = !string.IsNullOrWhiteSpace(Convert.ToString(reader.GetValue(reader.GetOrdinal("KEYSEQ"))));
+		//	Name = Convert.ToString(reader.GetValue(reader.GetOrdinal("NAME")));
+		//	Remarks = Convert.ToString(reader.GetValue(reader.GetOrdinal("REMARKS")));
+		//}
+
+		internal ColumnInfo(DataRow data)
 		{
-			ColumnNumber = Convert.ToInt32(reader.GetValue(reader.GetOrdinal("COLNO")));
-			SqlColumnType = Convert.ToString(reader.GetValue(reader.GetOrdinal("COLTYPE")));
+			ColumnNumber = Convert.ToInt32(data.Field<object>("COLNO"));
+			SqlColumnType = Convert.ToString(data.Field<object>("COLTYPE"));
 			DotNetColumnType = GetTypeFromDB2(SqlColumnType);
-			IsPrimary = !string.IsNullOrWhiteSpace(Convert.ToString(reader.GetValue(reader.GetOrdinal("KEYSEQ"))));
-			Name = Convert.ToString(reader.GetValue(reader.GetOrdinal("NAME")));
-			Remarks = Convert.ToString(reader.GetValue(reader.GetOrdinal("REMARKS")));
+			IsPrimary = !string.IsNullOrWhiteSpace(Convert.ToString(data.Field<object>("KEYSEQ")));
+			Name = Convert.ToString(data.Field<object>("COLNAME"));
+			Remarks = Convert.ToString(data.Field<object>("COLREMARKS"));
 		}
 
 		#endregion
