@@ -77,8 +77,9 @@ namespace DB2DataContextDriver
 					SqlTypeDeclaration = column.SqlColumnType,
 					Children = new List<ExplorerItem>()
 					{
-						new ExplorerItem($"SQL Type = {column.SqlColumnType}", ExplorerItemKind.Property, ExplorerIcon.Blank),
-						new ExplorerItem($".NET Type = {column.DotNetColumnType}", ExplorerItemKind.Property, ExplorerIcon.Blank)
+						new ExplorerItem($"SQL Type: {column.SqlColumnType}", ExplorerItemKind.Property, ExplorerIcon.Blank),
+						new ExplorerItem($".NET Type: {column.DotNetColumnType}", ExplorerItemKind.Property, ExplorerIcon.Blank),
+						new ExplorerItem($"Remarks: {column.Remarks}", ExplorerItemKind.Property, ExplorerIcon.Blank)
 					}
 				};
 			}

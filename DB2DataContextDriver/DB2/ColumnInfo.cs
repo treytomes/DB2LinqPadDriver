@@ -21,9 +21,11 @@ namespace DB2DataContextDriver.DB2
 
 		internal ColumnInfo(DataRow data)
 		{
+			var baseColumnType = Convert.ToString(data.Field<object>("COLTYPE")).Trim();
+
 			ColumnNumber = Convert.ToInt32(data.Field<object>("COLNO"));
-			SqlColumnType = Convert.ToString(data.Field<object>("COLTYPE"));
-			DotNetColumnType = GetTypeFromDB2(SqlColumnType);
+			SqlColumnType = $"{baseColumnType} [{data.Field<object>("LENGTH")}]";
+            DotNetColumnType = GetTypeFromDB2(baseColumnType);
 			IsPrimary = !string.IsNullOrWhiteSpace(Convert.ToString(data.Field<object>("KEYSEQ")));
 			Name = Convert.ToString(data.Field<object>("COLNAME"));
 			Remarks = Convert.ToString(data.Field<object>("COLREMARKS"));
@@ -56,23 +58,23 @@ namespace DB2DataContextDriver.DB2
 			if (db2Type.Contains("CHAR") || (db2Type == "XML"))
 			{
 				// Handles all VARCHAR, CHARACTER and XML types.
-				return "string";
+				return typeof(string).FullName;
 			}
 			else if (db2Type.Contains("INT") || (db2Type == "ROWID"))
 			{
 				// Handles SMALLINT, INTEGER, BIGINT, etc.
-				return "int";
+				return typeof(int).FullName;
 			}
 			else if (new[] { "DECIMAL", "NUMERIC", "DECFLOAT", "REAL", "DOUBLE" }.Contains(db2Type))
 			{
-				return "double";
+				return typeof(double).FullName;
 			}
 			else if (db2Type == "DATE")
 			{
-				return "System.DateTime";
+				return typeof(DateTime).FullName;
 			}
 
-			return "object";
+			return typeof(object).FullName;
 		}
 
 		#endregion

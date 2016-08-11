@@ -103,9 +103,10 @@ namespace DB2DataContextDriver
 			// At this point, context is set to a ready-to-go DB2Connection.
 
 			// NOTE: A useful application of overriding InitializeContext is to set up population of the SQL translation tab.
-			executionManager.SqlTranslationWriter.WriteLine($"Executing object of type {context.GetType()}: {context.ToString()}");
-			executionManager.SqlTranslationWriter.WriteLine($"Properties: {string.Join(", ", context.GetType().GetProperties().Select(x => x.Name))}");
-			executionManager.SqlTranslationWriter.WriteLine($"Methods: {string.Join(", ", context.GetType().GetMethods().Select(x => x.Name))}");
+			executionManager.SqlTranslationWriter.WriteLine("I have nothing to say to you.");
+			//executionManager.SqlTranslationWriter.WriteLine($"Executing object of type {context.GetType()}: {context.ToString()}");
+			//executionManager.SqlTranslationWriter.WriteLine($"Properties: {string.Join(", ", context.GetType().GetProperties().Select(x => x.Name))}");
+			//executionManager.SqlTranslationWriter.WriteLine($"Methods: {string.Join(", ", context.GetType().GetMethods().Select(x => x.Name))}");
 
 			// TODO: How can I grab a copy of the SQL I'm executing?
 
