@@ -40,8 +40,8 @@ namespace DB2DataContextDriver.CodeGen
 				// Add classes for each of the tables.
 				Classes = _tables.Select(table => GenerateTableClass(table)).ToList()
 			};
-			
-			nsDef.Classes.Add(GenerateDataContextClass());
+
+			nsDef.Classes.Add(GenerateDataContextClassV2());
 
 			return new StringBuilder()
 				.AppendLine(Using("IBM.Data.DB2"))
@@ -55,12 +55,33 @@ namespace DB2DataContextDriver.CodeGen
 		{
 			return new ClassDefinition()
 			{
-				Name = table.Name + "Item",
+				Name = table.Name, // + "Item",
 				Methods = new List<string>(),
 
 				// Create a property for each of the columns.
 				Properties = table.Columns.Select(column => GenerateProperty(column)).ToList()
 			};
+		}
+
+		private ClassDefinition GenerateDataContextClassV2()
+		{
+			var ctxDef = new ClassDefinition()
+			{
+				Name = _typeName,
+				Inherits = "LinqToDB.Data.DataConnection",
+				Methods = new List<string>()
+				{
+					// This is the constructor.
+					$"public {_typeName}(string connectionString) : base(new LinqToDB.DataProvider.DB2.DB2DataProvider(\"DB2\", LinqToDB.DataProvider.DB2.DB2Version.zOS), connectionString) {{ }}"
+				}
+			};
+
+			// Create an accessor for each of our tables.  This accessor will use a data reader to iterate over the table's rows.
+			foreach (var table in _tables)
+			{
+				ctxDef.Methods.Add($"public LinqToDB.ITable<{table.Name}> {table.Name} {{ get {{ return GetTable<{table.Name}>(); }} }}");
+			}
+			return ctxDef;
 		}
 
 		private ClassDefinition GenerateDataContextClass()

@@ -31,9 +31,10 @@ namespace DB2DataContextDriver
 		{
 			// Use the CSharpCodeProvider to compile the generated code:
 			CompilerResults results;
-			using (var codeProvider = new CSharpCodeProvider(new Dictionary<string, string>() { { "CompilerVersion", "v3.5" } }))
+			using (var codeProvider = new CSharpCodeProvider(new Dictionary<string, string>() { { "CompilerVersion", "v4.0" } }))
 			{
-				var options = new CompilerParameters(new[] { "System.dll", "System.Core.dll", "System.Data.dll", Path.Combine(dllPath, "IBM.Data.DB2.dll") }, name.CodeBase, true);
+				//var options = new CompilerParameters(new[] { "System.dll", "System.Core.dll", "System.Data.dll", Path.Combine(dllPath, "IBM.Data.DB2.dll"), Path.Combine(dllPath, "linq2db.dll") }, name.CodeBase, true);
+				var options = new CompilerParameters(new[] { "System.Core.dll", "System.Data.dll", Path.Combine(dllPath, "IBM.Data.DB2.dll"), Path.Combine(dllPath, "linq2db.dll") }, name.CodeBase, true);
 				results = codeProvider.CompileAssemblyFromSource(options, code);
 			}
 			if (results.Errors.Count > 0)

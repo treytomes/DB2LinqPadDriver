@@ -7,24 +7,40 @@ namespace DB2DataContextDriver.CodeGen
 	{
 		public string Name { get; set; }
 
+		public string Inherits { get; set; }
+
 		public List<string> Methods { get; set; }
 
 		public List<PropertyDefinition> Properties { get; set; }
 
 		public override string ToString()
 		{
-			var sb = new StringBuilder().AppendFormat("public class {0} {{\n", Name);
-
-			foreach (var method in Methods)
+			var sb = new StringBuilder();
+			if (string.IsNullOrWhiteSpace(Inherits))
 			{
-				sb.AppendLine(method.ToString());
+				sb.AppendFormat("public class {0} {{\n", Name);
+			}
+			else
+			{
+				sb.AppendFormat("public class {0} : {1} {{\n", Name, Inherits);
 			}
 
-			foreach (var property in Properties)
+			if (Methods != null)
 			{
-				sb.AppendLine(property.ToString());
+				foreach (var method in Methods)
+				{
+					sb.AppendLine(method.ToString());
+				}
 			}
-			
+
+			if (Properties != null)
+			{
+				foreach (var property in Properties)
+				{
+					sb.AppendLine(property.ToString());
+				}
+			}
+
 			return sb.Append("}\n").ToString();
 		}
 	}
