@@ -15,7 +15,7 @@ namespace DB2DataContextDriver
 {
 	public class SchemaBuilder
 	{
-		// TODO: If I had a smarter Linq provider, I might be able to
+		// TODO: If I had a smarter Linq provider, I might be able to...?
 		public static List<ExplorerItem> GetSchemaAndBuildAssembly(DB2Properties properties, AssemblyName name, ref string nameSpace, ref string typeName, string dllPath)
 		{
 			var tables = new TableInfoList(properties);

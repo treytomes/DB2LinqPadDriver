@@ -45,7 +45,7 @@ namespace DB2DataContextDriver
 		public override string GetConnectionDescription(IConnectionInfo cxInfo)
 		{
 			var props = new DB2Properties(cxInfo);
-			return $"{props.Database}.{props.Schema}";
+			return $"{props.Database}.{props.Schema}.{props.ServerName}";
 		}
 
 		/// <summary>

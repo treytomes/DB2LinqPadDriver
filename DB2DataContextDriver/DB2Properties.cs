@@ -52,6 +52,22 @@ namespace DB2DataContextDriver
 			}
 		}
 
+		public bool IsProduction
+		{
+			get
+			{
+				return _cxInfo.IsProduction;
+			}
+			set
+			{
+				if (IsProduction != value)
+				{
+					_cxInfo.IsProduction = value;
+					RaisePropertyChanged();
+				}
+			}
+		}
+
 		public string ServerName
 		{
 			get
