@@ -130,7 +130,16 @@ namespace DB2DataContextDriver.CodeGen
 
 		private PropertyDefinition GenerateProperty(ColumnInfo column)
 		{
-			return new PropertyDefinition() { Name = column.Name, Type = column.DotNetColumnType };
+			var property = new PropertyDefinition()
+			{
+				Name = column.Name,
+				Type = column.DotNetColumnType
+			};
+			if (column.IsPrimary)
+			{
+				property.Attributes.Add("[LinqToDB.Mapping.PrimaryKey]");
+			}
+			return property;
 		}
 
 		#endregion

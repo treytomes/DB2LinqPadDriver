@@ -32,6 +32,7 @@ namespace DB2LinqProvider.Tests
 		{
 			using (var db = new CUSDTA("Server=EESIBM02;DATABASE=CUSDTA;PWD=db2power;UID=DB2INST1;Persist Security Info=True;Connection Lifetime=60;Connection Reset=false;Min Pool Size=0;Max Pool Size=100;Pooling=true;"))
 			{
+
 				var query = from o in db.TBLORDHDR
 							where o.DATE_CREATED == "20161105"
 							select o;
