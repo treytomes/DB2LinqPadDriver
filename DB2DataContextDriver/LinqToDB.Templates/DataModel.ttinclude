@@ -150,10 +150,14 @@ void LoadServerMetadata(DataConnection dataConnection)
 
 	foreach (var key in keys)
 	{
-		key.t.table.ForeignKeys.Add(key.KeyName, key.key);
+		key.t.table.ForeignKeys.Add(
+			key.k.OtherTable.IsDefaultSchema ? key.KeyName : key.k.OtherTable.SchemaName + "." + key.KeyName,
+			key.key);
 
 		if (key.k.BackReference != null)
 			key.key.BackReference = keys.First(k => k.k == key.k.BackReference).key;
+
+		key.key.MemberName = key.key.MemberName.Replace(".", String.Empty);
 
 		key.key.MemberName = key.key.AssociationType == AssociationType.OneToMany ?
 			ToPlural(key.key.MemberName) : ToSingular(key.key.MemberName);
@@ -190,7 +194,7 @@ void LoadServerMetadata(DataConnection dataConnection)
 								IsIdentity      = c.IsIdentity,
 								IsPrimaryKey    = c.IsPrimaryKey,
 								PrimaryKeyOrder = c.PrimaryKeyOrder,
-								MemberName      = CheckType(c.SystemType, c.MemberName),
+								MemberName      = CheckColumnName(CheckType(c.SystemType, c.MemberName)),
 								Type            = c.MemberType,
 								SkipOnInsert    = c.SkipOnInsert,
 								SkipOnUpdate    = c.SkipOnUpdate,
@@ -216,7 +220,7 @@ void LoadServerMetadata(DataConnection dataConnection)
 						IsOut         = pr.IsOut,
 						IsResult      = pr.IsResult,
 						Size          = pr.Size,
-						ParameterName = pr.ParameterName,
+						ParameterName = CheckParameterName(pr.ParameterName),
 						ParameterType = pr.ParameterType,
 						SystemType    = pr.SystemType,
 						DataType      = pr.DataType.ToString(),
@@ -264,6 +268,32 @@ string CheckType(Type type, string typeName)
 	if (!Model.Usings.Contains(type.Namespace))
 		Model.Usings.Add(type.Namespace);
 	return typeName;
+}
+
+string CheckColumnName(string memberName)
+{
+    if (string.IsNullOrEmpty(memberName))
+        memberName = "Empty";
+    else
+    {
+        memberName = memberName.Replace("%", "Percent");
+    }
+    return memberName;
+}
+
+string CheckParameterName(string parameterName)
+{
+    var invalidParameterNames = new List<string>
+    {
+        "@DataType"
+    };
+
+    var result = parameterName;
+    while (invalidParameterNames.Contains(result))
+    {
+        result = result + "_";
+    }
+	return result;
 }
 
 Action AfterLoadMetadata = () => {};
@@ -445,15 +475,17 @@ public class TableContext
 	public string                      TableName;
 
 	public TableContext Column(string columnName,
-		string MemberName = null,
-		string Type       = null,
-		bool?  IsNullable = null)
+		string MemberName  = null,
+		string Type        = null,
+		bool?  IsNullable  = null,
+		string Conditional = null)
 	{
 		var c = Transformation.GetColumn(TableName, columnName);
 
-		if (MemberName != null) c.MemberName = MemberName;
-		if (Type       != null) c.Type       = Type;
-		if (IsNullable != null) c.IsNullable = IsNullable.Value;
+		if (MemberName  != null) c.MemberName  = MemberName;
+		if (Type        != null) c.Type        = Type;
+		if (IsNullable  != null) c.IsNullable  = IsNullable.Value;
+		if (Conditional != null) c.Conditional = Conditional;
 
 		return this;
 	}
@@ -518,6 +550,7 @@ public partial class Column : Property
 	public bool      SkipOnUpdate;
 	public bool      SkipOnInsert;
 	public bool      IsDuplicateOrEmpty;
+	public bool      IsDiscriminator;
 	public string    AliasName;
 
 	public string MemberName

@@ -4,11 +4,6 @@ using System.Reflection;
 using LINQPad.Extensibility.DataContext;
 using IBM.Data.DB2;
 using System.Data;
-using System.IO;
-using System.Linq;
-using System.Windows.Controls;
-using LINQPad;
-using System.ComponentModel;
 
 namespace DB2DataContextDriver
 {
