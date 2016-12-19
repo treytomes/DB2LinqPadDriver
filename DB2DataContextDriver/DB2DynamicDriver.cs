@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Controls;
 using LINQPad;
+using System.ComponentModel;
 
 namespace DB2DataContextDriver
 {
@@ -17,6 +18,12 @@ namespace DB2DataContextDriver
 	/// </summary>
 	public class DB2DynamicDriver : DynamicDataContextDriver
 	{
+		#region Fields
+
+		private Dictionary<object, EventHandler> _lastQueryWatchers = new Dictionary<object, EventHandler>();
+
+		#endregion
+
 		#region Properties
 
 		/// <summary>User-friendly name for your driver.</summary>
@@ -103,7 +110,16 @@ namespace DB2DataContextDriver
 			// At this point, context is set to a ready-to-go DB2Connection.
 
 			// NOTE: A useful application of overriding InitializeContext is to set up population of the SQL translation tab.
-			executionManager.SqlTranslationWriter.WriteLine("I have nothing to say to you.");
+			//var dataContext = context as LinqToDB.Data.DataConnection;
+
+			LinqToDB.Data.DataConnection.TurnTraceSwitchOn(System.Diagnostics.TraceLevel.Verbose);
+			LinqToDB.Data.DataConnection.OnTrace += x => executionManager.SqlTranslationWriter.WriteLine(x.SqlText);
+
+			//var commandProperty = TypeDescriptor.GetProperties(dataContext.Command.GetType()).Find("CommandText", false);
+			//var watcher = new EventHandler((s, e) => executionManager.SqlTranslationWriter.WriteLine("Hi: " + (s as IDbCommand).CommandText));
+			//commandProperty.AddValueChanged(dataContext.Command, watcher);
+			//_lastQueryWatchers.Add(context, watcher);
+
 			//executionManager.SqlTranslationWriter.WriteLine($"Executing object of type {context.GetType()}: {context.ToString()}");
 			//executionManager.SqlTranslationWriter.WriteLine($"Properties: {string.Join(", ", context.GetType().GetProperties().Select(x => x.Name))}");
 			//executionManager.SqlTranslationWriter.WriteLine($"Methods: {string.Join(", ", context.GetType().GetMethods().Select(x => x.Name))}");
@@ -119,6 +135,13 @@ namespace DB2DataContextDriver
 		/// </summary>
 		public override void TearDownContext(IConnectionInfo cxInfo, object context, QueryExecutionManager executionManager, object[] constructorArguments)
 		{
+			LinqToDB.Data.DataConnection.OnTrace = null;
+
+			//var dataContext = context as LinqToDB.Data.DataConnection;
+			//var commandProperty = TypeDescriptor.GetProperties(dataContext.Command.GetType()).Find("CommandText", false);
+			//commandProperty.RemoveValueChanged(dataContext.Command, _lastQueryWatchers[context]);
+			//_lastQueryWatchers.Remove(context);
+
 			base.TearDownContext(cxInfo, context, executionManager, constructorArguments);
 		}
 
@@ -129,6 +152,16 @@ namespace DB2DataContextDriver
 		/// </summary>
 		public override void OnQueryFinishing(IConnectionInfo cxInfo, object context, QueryExecutionManager executionManager)
 		{
+			//var dataConnection = (context as LinqToDB.Data.DataConnection);
+			//if (dataConnection != null)
+			//{
+			//	executionManager.SqlTranslationWriter.WriteLine((context as LinqToDB.Data.DataConnection).LastQuery);
+			//}
+			//else
+			//{
+			//	executionManager.SqlTranslationWriter.WriteLine($"Unknown context type: {context?.GetType()}");
+			//}
+
 			base.OnQueryFinishing(cxInfo, context, executionManager);
 		}
 
