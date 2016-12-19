@@ -13,12 +13,6 @@ namespace DB2DataContextDriver
 	/// </summary>
 	public class DB2DynamicDriver : DynamicDataContextDriver
 	{
-		#region Fields
-
-		private Dictionary<object, EventHandler> _lastQueryWatchers = new Dictionary<object, EventHandler>();
-
-		#endregion
-
 		#region Properties
 
 		/// <summary>User-friendly name for your driver.</summary>
@@ -108,18 +102,7 @@ namespace DB2DataContextDriver
 			//var dataContext = context as LinqToDB.Data.DataConnection;
 
 			LinqToDB.Data.DataConnection.TurnTraceSwitchOn(System.Diagnostics.TraceLevel.Verbose);
-			LinqToDB.Data.DataConnection.OnTrace += x => executionManager.SqlTranslationWriter.WriteLine(x.SqlText);
-
-			//var commandProperty = TypeDescriptor.GetProperties(dataContext.Command.GetType()).Find("CommandText", false);
-			//var watcher = new EventHandler((s, e) => executionManager.SqlTranslationWriter.WriteLine("Hi: " + (s as IDbCommand).CommandText));
-			//commandProperty.AddValueChanged(dataContext.Command, watcher);
-			//_lastQueryWatchers.Add(context, watcher);
-
-			//executionManager.SqlTranslationWriter.WriteLine($"Executing object of type {context.GetType()}: {context.ToString()}");
-			//executionManager.SqlTranslationWriter.WriteLine($"Properties: {string.Join(", ", context.GetType().GetProperties().Select(x => x.Name))}");
-			//executionManager.SqlTranslationWriter.WriteLine($"Methods: {string.Join(", ", context.GetType().GetMethods().Select(x => x.Name))}");
-
-			// TODO: How can I grab a copy of the SQL I'm executing?
+			LinqToDB.Data.DataConnection.WriteTraceLine = (message, displayName) => executionManager.SqlTranslationWriter.WriteLine("{0}", message);
 
 			base.InitializeContext(cxInfo, context, executionManager);
 		}
@@ -130,7 +113,7 @@ namespace DB2DataContextDriver
 		/// </summary>
 		public override void TearDownContext(IConnectionInfo cxInfo, object context, QueryExecutionManager executionManager, object[] constructorArguments)
 		{
-			LinqToDB.Data.DataConnection.OnTrace = null;
+			LinqToDB.Data.DataConnection.WriteTraceLine = null;
 
 			//var dataContext = context as LinqToDB.Data.DataConnection;
 			//var commandProperty = TypeDescriptor.GetProperties(dataContext.Command.GetType()).Find("CommandText", false);
