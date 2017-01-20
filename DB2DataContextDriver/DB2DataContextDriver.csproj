@@ -47,9 +47,9 @@
       <HintPath>..\packages\linq2db.1.7.5\lib\net45\linq2db.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="LINQPad">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\LINQPad5\LINQPad.exe</HintPath>
-      <Private>False</Private>
+    <Reference Include="LINQPad, Version=1.0.0.0, Culture=neutral, PublicKeyToken=21353812cd2a2db5, processorArchitecture=MSIL">
+      <HintPath>..\packages\LINQPad.4.51.3\lib\net40\LINQPad.exe</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
