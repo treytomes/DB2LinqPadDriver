@@ -43,8 +43,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>\\fileserver01\programmer01\Builds\Assemblies\4.0-Debug\IBM.Data.DB2.dll</HintPath>
     </Reference>
-    <Reference Include="linq2db, Version=1.0.7.5, Culture=neutral, PublicKeyToken=f19f8aed7feff67e, processorArchitecture=MSIL">
-      <HintPath>..\packages\linq2db.1.7.5\lib\net45\linq2db.dll</HintPath>
+    <Reference Include="linq2db, Version=1.9.0.0, Culture=neutral, PublicKeyToken=f19f8aed7feff67e, processorArchitecture=MSIL">
+      <HintPath>..\packages\linq2db.1.9.0\lib\net45\linq2db.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="LINQPad">
@@ -78,12 +78,15 @@
     </Compile>
     <Compile Include="DB2\ColumnInfo.cs" />
     <Compile Include="DB2\ColumnInfoList.cs" />
+    <Compile Include="DB2\DB2TypeFactory.cs" />
+    <Compile Include="DB2\StoredProcedureInfo.cs" />
+    <Compile Include="DB2\StoredProcedureInfoList.cs" />
+    <Compile Include="DB2\StoredProcedureParameterInfo.cs" />
     <Compile Include="DB2\TableInfo.cs" />
     <Compile Include="DB2\TableInfoList.cs" />
+    <Compile Include="IDB2Properties.cs" />
     <Compile Include="SchemaBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Reflection\FieldSet.cs" />
-    <Compile Include="Reflection\TypeBuilderExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="DevDeploy.bat">
@@ -92,22 +95,28 @@
     <None Include="LinqToDB.Templates\DataAnnotations.ttinclude" />
     <None Include="LinqToDB.Templates\DataModel.ttinclude" />
     <None Include="LinqToDB.Templates\EditableObject.ttinclude" />
+    <None Include="LinqToDB.Templates\Humanizer.ttinclude" />
     <None Include="LinqToDB.Templates\LinqToDB.Access.ttinclude" />
+    <None Include="LinqToDB.Templates\LinqToDB.DB2.Tools.ttinclude" />
     <None Include="LinqToDB.Templates\LinqToDB.DB2.ttinclude" />
     <None Include="LinqToDB.Templates\LinqToDB.Firebird.ttinclude" />
     <None Include="LinqToDB.Templates\LinqToDB.Informix.ttinclude" />
     <None Include="LinqToDB.Templates\LinqToDB.MySql.ttinclude" />
     <None Include="LinqToDB.Templates\LinqToDB.Oracle.ttinclude" />
     <None Include="LinqToDB.Templates\LinqToDB.PostgreSQL.ttinclude" />
+    <None Include="LinqToDB.Templates\LinqToDB.SapHana.ttinclude" />
     <None Include="LinqToDB.Templates\LinqToDB.SqlCe.ttinclude" />
     <None Include="LinqToDB.Templates\LinqToDB.SQLite.ttinclude" />
     <None Include="LinqToDB.Templates\LinqToDB.SqlServer.SqlTypes.ttinclude" />
     <None Include="LinqToDB.Templates\LinqToDB.SqlServer.ttinclude" />
     <None Include="LinqToDB.Templates\LinqToDB.Sybase.ttinclude" />
+    <None Include="LinqToDB.Templates\LinqToDB.Tools.ttinclude" />
     <None Include="LinqToDB.Templates\LinqToDB.ttinclude" />
+    <None Include="LinqToDB.Templates\NotifyDataErrorInfo.ttinclude" />
     <None Include="LinqToDB.Templates\NotifyPropertyChanged.ttinclude" />
+    <None Include="LinqToDB.Templates\ObsoleteAttributes.ttinclude" />
     <None Include="LinqToDB.Templates\PluralizationService.ttinclude" />
-    <None Include="LinqToDB.Templates\ReadMe.LinqToDB.md" />
+    <None Include="LinqToDB.Templates\README.md" />
     <None Include="LinqToDB.Templates\T4Model.ttinclude" />
     <None Include="LinqToDB.Templates\Validation.ttinclude" />
     <None Include="packages.config" />

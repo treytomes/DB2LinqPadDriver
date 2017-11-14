@@ -9,7 +9,7 @@ namespace DB2DataContextDriver
 	/// <summary>
 	/// Wrapper to expose typed properties over ConnectionInfo.DriverData.
 	/// </summary>
-	public class DB2Properties : IEquatable<DB2Properties>, INotifyPropertyChanged, IDataErrorInfo
+	public class DB2Properties : IDB2Properties, IEquatable<DB2Properties>, INotifyPropertyChanged, IDataErrorInfo
 	{
 		#region Events
 

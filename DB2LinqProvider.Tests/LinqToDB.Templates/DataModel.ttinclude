@@ -20,19 +20,20 @@ string   NamespaceName
 	set { Model.Namespace.Name = value; }
 }
 
-string   DatabaseName             = null;
-string   DataContextName          = null;
-string   BaseDataContextClass     = null;
-string   BaseEntityClass          = null;
-string   OneToManyAssociationType = "IEnumerable<{0}>";
+string   DatabaseName                  = null;
+string   DataContextName               = null;
+string   BaseDataContextClass          = null;
+string   BaseEntityClass               = null;
+string   OneToManyAssociationType      = "IEnumerable<{0}>";
 
-bool     GenerateDatabaseName     = false;
-bool     GenerateConstructors     = true;
-string   DefaultConfiguration     = null;
-bool     GenerateAssociations     = true;
-bool     GenerateBackReferences   = true;
-bool     ReplaceSimilarTables     = true;
-bool     IncludeDefaultSchema     = true;
+bool     GenerateDatabaseName          = false;
+bool     GenerateConstructors          = true;
+string   DefaultConfiguration          = null;
+bool     GenerateAssociations          = true;
+bool     GenerateBackReferences        = true;
+bool     GenerateAssociationExtensions = false;
+bool     ReplaceSimilarTables          = true;
+bool     IncludeDefaultSchema          = true;
 
 Class    DataContextObject;
 
@@ -41,12 +42,46 @@ bool SingularizeClassNames               = true;
 bool PluralizeDataContextPropertyNames   = true;
 bool SingularizeDataContextPropertyNames = false;
 
+bool NormalizeNames                      = true;
+
+private Func<string, bool, string> _toValidName;
+Func<string, bool, string> ToValidName
+{
+	get { return _toValidName ?? ToValidNameDefault; }
+	set { _toValidName = value; }
+}
+
+private Func<string, bool, string> _convertToCompilabl;
+Func<string, bool, string> ConvertToCompilable 
+{
+	get { return _convertToCompilabl ?? ConvertToCompilableDefault; }
+	set { _convertToCompilabl = value; }
+}
+
+private Func<ForeignKey, string> _getAssociationExtensionPluralName;
+Func<ForeignKey, string> GetAssociationExtensionPluralName
+{
+	get { return _getAssociationExtensionPluralName ?? GetAssociationExtensionPluralNameDefault; }
+	set { _getAssociationExtensionPluralName = value; }
+}
+
+private Func<ForeignKey, string> _getAssociationExtensionSingularName;
+Func<ForeignKey, string> GetAssociationExtensionSinglularName
+{
+	get { return _getAssociationExtensionSingularName ?? GetAssociationExtensionSinglularNameDefault; }
+	set { _getAssociationExtensionSingularName = value; }
+}
+
 LinqToDB.SchemaProvider.GetSchemaOptions GetSchemaOptions =
 	new LinqToDB.SchemaProvider.GetSchemaOptions();
 
 LinqToDB.SqlProvider.ISqlBuilder SqlBuilder;
 
 Func<TableSchema,Table> LoadProviderSpecificTable = tableSchema => null;
+
+static Func<ColumnSchema,string>                 ConvertColumnMemberType          = (c) => c.MemberType;
+static Func<TableSchema,ColumnSchema,string>     ConvertTableColumnMemberType     = (t,c) => ConvertColumnMemberType(c);
+static Func<ProcedureSchema,ColumnSchema,string> ConvertProcedureColumnMemberType = (t,c) => ConvertColumnMemberType(c);
 
 void LoadServerMetadata(DataConnection dataConnection)
 {
@@ -59,7 +94,7 @@ void LoadServerMetadata(DataConnection dataConnection)
 		DatabaseName = db.Database;
 
 	if (DataContextName == null)
-		DataContextObject.Name = DataContextName = db.Database + "DB";
+		DataContextObject.Name = DataContextName = (ToValidName(db.Database, true) + "DB");
 
 	DataContextObject.Comment.Add("/ <summary>");
 	DataContextObject.Comment.Add("/ Database       : " + db.Database);
@@ -103,7 +138,7 @@ void LoadServerMetadata(DataConnection dataConnection)
 						IsPrimaryKey    = c.IsPrimaryKey,
 						PrimaryKeyOrder = c.PrimaryKeyOrder,
 						MemberName      = CheckType(c.SystemType, c.MemberName),
-						Type            = c.MemberType,
+						Type            = ConvertTableColumnMemberType(t, c),
 						SkipOnInsert    = c.SkipOnInsert,
 						SkipOnUpdate    = c.SkipOnUpdate,
 						Description     = c.Description,
@@ -150,10 +185,14 @@ void LoadServerMetadata(DataConnection dataConnection)
 
 	foreach (var key in keys)
 	{
-		key.t.table.ForeignKeys.Add(key.KeyName, key.key);
+		key.t.table.ForeignKeys.Add(
+			key.k.OtherTable.IsDefaultSchema ? key.KeyName : key.k.OtherTable.SchemaName + "." + key.KeyName,
+			key.key);
 
 		if (key.k.BackReference != null)
 			key.key.BackReference = keys.First(k => k.k == key.k.BackReference).key;
+
+		key.key.MemberName = key.key.MemberName.Replace(".", String.Empty);
 
 		key.key.MemberName = key.key.AssociationType == AssociationType.OneToMany ?
 			ToPlural(key.key.MemberName) : ToSingular(key.key.MemberName);
@@ -168,7 +207,7 @@ void LoadServerMetadata(DataConnection dataConnection)
 			{
 				Schema          = (p.IsDefaultSchema && !IncludeDefaultSchema) || string.IsNullOrEmpty(p.SchemaName)? null : p.SchemaName,
 				ProcedureName   = p.ProcedureName,
-				Name            = p.MemberName,
+				Name            = ToValidName(p.MemberName, true),
 				IsFunction      = p.IsFunction,
 				IsTableFunction = p.IsTableFunction,
 				IsDefaultSchema = p.IsDefaultSchema,
@@ -176,9 +215,9 @@ void LoadServerMetadata(DataConnection dataConnection)
 				ResultTable     = p.ResultTable == null ? null :
 					new Table
 					{
-						TypeName =
+						TypeName = ToValidName(
 							PluralizeClassNames   ? ToPlural  (p.ResultTable.TypeName) :
-							SingularizeClassNames ? ToSingular(p.ResultTable.TypeName) : p.ResultTable.TypeName,
+							SingularizeClassNames ? ToSingular(p.ResultTable.TypeName) : p.ResultTable.TypeName, true),
 						Columns  = ToDictionary(
 							p.ResultTable.Columns,
 							c => c.ColumnName,
@@ -190,8 +229,8 @@ void LoadServerMetadata(DataConnection dataConnection)
 								IsIdentity      = c.IsIdentity,
 								IsPrimaryKey    = c.IsPrimaryKey,
 								PrimaryKeyOrder = c.PrimaryKeyOrder,
-								MemberName      = CheckType(c.SystemType, c.MemberName),
-								Type            = c.MemberType,
+								MemberName      = CheckColumnName(CheckType(c.SystemType, c.MemberName)),
+								Type            = ConvertProcedureColumnMemberType(p, c),
 								SkipOnInsert    = c.SkipOnInsert,
 								SkipOnUpdate    = c.SkipOnUpdate,
 								Description     = c.Description,
@@ -216,7 +255,7 @@ void LoadServerMetadata(DataConnection dataConnection)
 						IsOut         = pr.IsOut,
 						IsResult      = pr.IsResult,
 						Size          = pr.Size,
-						ParameterName = pr.ParameterName,
+						ParameterName = CheckParameterName(pr.ParameterName),
 						ParameterType = pr.ParameterType,
 						SystemType    = pr.SystemType,
 						DataType      = pr.DataType.ToString(),
@@ -266,6 +305,48 @@ string CheckType(Type type, string typeName)
 	return typeName;
 }
 
+string CheckColumnName(string memberName)
+{
+    if (string.IsNullOrEmpty(memberName))
+        memberName = "Empty";
+    else
+    {
+        memberName = memberName
+			.Replace("%", "Percent")
+			.Replace(">", "Greater")
+			.Replace("<", "Lower")
+			.Replace("+", "Plus")
+			.Replace('(', '_')
+			.Replace(')', '_')
+			.Replace('-', '_')
+			.Replace('|', '_')
+			.Replace(',', '_')
+			.Replace('"', '_')
+			.Replace("'", "_")
+			.Replace(".", "_")
+			.Replace("\u00A3", "Pound");
+	
+		if (memberName == "new")
+			memberName = "@new";
+    }
+    return memberName;
+}
+
+string CheckParameterName(string parameterName)
+{
+    var invalidParameterNames = new List<string>
+    {
+        "@DataType"
+    };
+
+    var result = parameterName;
+    while (invalidParameterNames.Contains(result))
+    {
+        result = result + "_";
+    }
+	return result;
+}
+
 Action AfterLoadMetadata = () => {};
 
 void LoadMetadata(DataConnection dataConnection)
@@ -291,7 +372,7 @@ void LoadMetadata(DataConnection dataConnection)
 		"null",     "object",   "operator", "out",     "override",  "params",   "private",    "protected", "public",  "readonly",
 		"ref",      "return",   "sbyte",    "sealed",  "short",     "sizeof",   "stackalloc", "static",    "struct",  "switch",
 		"this",     "throw",    "true",     "try",     "typeof",    "uint",     "ulong",      "unchecked", "unsafe",  "ushort",
-		"using",    "virtual",  "volatile", "void",    "while"
+		"using",    "virtual",  "volatile", "void",    "while",     "namespace", "string"
 	};
 
 	foreach (var t in Tables.Values)
@@ -302,31 +383,54 @@ void LoadMetadata(DataConnection dataConnection)
 		if (keyWords.Contains(t.DataContextPropertyName))
 			t.DataContextPropertyName = "@" + t.DataContextPropertyName;
 
-		t.TypeName                = ConvertToCompilable(t.TypeName);
-		t.DataContextPropertyName = ConvertToCompilable(t.DataContextPropertyName);
+		t.TypeName                = ConvertToCompilable(t.TypeName,                true);
+		t.DataContextPropertyName = ConvertToCompilable(t.DataContextPropertyName, true);
 
 		foreach (var col in t.Columns.Values)
 		{
 			if (keyWords.Contains(col.MemberName))
 				col.MemberName = "@" + col.MemberName;
 
-			col.MemberName = ConvertToCompilable(col.MemberName);
+			col.MemberName = ConvertToCompilable(col.MemberName, true);
 
 			if (col.MemberName == t.TypeName)
 				col.MemberName += "_Column";
 		}
+
+	    var duplicates = t.Columns.Values.ToLookup(c => c.MemberName).Where(g => g.Count() > 1);
+	    foreach (var d in duplicates)
+	    {
+			var alreadyNamed = new HashSet<string>();
+	        foreach (var col in d)
+	        {
+	            col.MemberName = col.ColumnName;
+	            if (keyWords.Contains(col.MemberName))
+	                col.MemberName = "@" + col.MemberName;
+
+	            col.MemberName = ConvertToCompilable(col.MemberName, false);
+
+	            if (col.MemberName == t.TypeName)
+	                col.MemberName += "_Column";
+
+	            while (alreadyNamed.Contains(col.MemberName))
+	            {
+	                col.MemberName += "_";
+	            }
+	            alreadyNamed.Add(col.MemberName);
+	        }
+	    }
 	}
 
 	AfterLoadMetadata();
 }
 
-string ConvertToCompilable(string name)
+string ConvertToCompilableDefault(string name, bool mayRemoveUnderscore)
 {
 	var query =
 		from c in name
 		select char.IsLetterOrDigit(c) || c == '@' ? c : '_';
 
-	return new string(query.ToArray());
+	return ToValidName(new string(query.ToArray()), mayRemoveUnderscore);
 }
 
 Table GetTable(string name)
@@ -445,15 +549,17 @@ public class TableContext
 	public string                      TableName;
 
 	public TableContext Column(string columnName,
-		string MemberName = null,
-		string Type       = null,
-		bool?  IsNullable = null)
+		string MemberName  = null,
+		string Type        = null,
+		bool?  IsNullable  = null,
+		string Conditional = null)
 	{
 		var c = Transformation.GetColumn(TableName, columnName);
 
-		if (MemberName != null) c.MemberName = MemberName;
-		if (Type       != null) c.Type       = Type;
-		if (IsNullable != null) c.IsNullable = IsNullable.Value;
+		if (MemberName  != null) c.MemberName  = MemberName;
+		if (Type        != null) c.Type        = Type;
+		if (IsNullable  != null) c.IsNullable  = IsNullable.Value;
+		if (Conditional != null) c.Conditional = Conditional;
 
 		return this;
 	}
@@ -518,6 +624,7 @@ public partial class Column : Property
 	public bool      SkipOnUpdate;
 	public bool      SkipOnInsert;
 	public bool      IsDuplicateOrEmpty;
+	public bool      IsDiscriminator;
 	public string    AliasName;
 
 	public string MemberName
@@ -600,6 +707,52 @@ public class Parameter
 	public string   ParameterType { get; set; }
 	public Type     SystemType    { get; set; }
 	public string   DataType      { get; set; }
+}
+
+private int _counter = 0;
+
+string ToValidNameDefault(string name, bool mayRemoveUnderscore)
+{
+	if (NormalizeNames && mayRemoveUnderscore && name.Contains("_"))
+	{
+		name = SplitAndJoin(name, "", '_');
+	}	
+
+	if (name.Contains("."))
+	{
+		name = SplitAndJoin(name, "", '.');
+	}
+		
+	if (name.Length > 0 && char.IsDigit(name[0]))
+		name = "_" + name;
+
+	if (string.IsNullOrEmpty(name))
+		name = "_" + _counter++;
+
+	if (NormalizeNames)
+	{
+		name = char.ToUpper(name[0]) + name.Substring(1);
+	}
+
+	return name;
+}
+
+static string SplitAndJoin(string value, string join, params char[] split)
+{
+	var ss = value.Split(split, StringSplitOptions.RemoveEmptyEntries)
+		.Select(s => char.ToUpper(s[0]) + s.Substring(1));
+
+	return string.Join(join, ss.ToArray());
+}
+
+private string GetAssociationExtensionSinglularNameDefault(ForeignKey key)
+{
+	return ToSingular(key.Name);
+}
+
+private string GetAssociationExtensionPluralNameDefault(ForeignKey key)
+{
+	return ToPlural(ToSingular(key.Name));
 }
 
 #>

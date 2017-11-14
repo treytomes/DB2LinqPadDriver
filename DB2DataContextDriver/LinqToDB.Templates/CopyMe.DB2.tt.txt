@@ -1,7 +1,7 @@
-<#@ template language="C#" debug="True" hostSpecific="True"                        #>
-<#@ output extension=".generated.cs"                                               #>
-<#@ include file="$(ProjectDir)LinqToDB.Templates\LinqToDB.DB2.ttinclude"          #>
-<#@ include file="$(ProjectDir)LinqToDB.Templates\PluralizationService.ttinclude"  #>
+<#@ template language="C#" debug="True" hostSpecific="True"                       #>
+<#@ output extension=".generated.cs"                                              #>
+<#@ include file="$(ProjectDir)LinqToDB.Templates\LinqToDB.DB2.Tools.ttinclude"   #>
+<#@ include file="$(ProjectDir)LinqToDB.Templates\PluralizationService.ttinclude" #>
 <#
 	/*
 		1. Download and install IBM Data Server Provider for .NET.
@@ -36,7 +36,7 @@
 					Console.WriteLine(c.ContactName);
 			}
 
-		7. See more at https://github.com/linq2db/t4models/blob/master/Templates/ReadMe.LinqToDB.md.
+		7. See more at https://github.com/linq2db/t4models
 	*/
 
 	NamespaceName = "DataModels";

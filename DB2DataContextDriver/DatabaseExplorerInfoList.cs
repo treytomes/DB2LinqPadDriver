@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections;
 using DB2DataContextDriver.DB2;
+using System.Linq;
 
 namespace DB2DataContextDriver
 {
@@ -10,18 +11,20 @@ namespace DB2DataContextDriver
 		#region Fields
 
 		private IEnumerable<TableInfo> _tables;
+		private IEnumerable<StoredProcedureInfo> _routines;
 
 		#endregion
 
 		#region Constructors
 
-		public DatabaseExplorerInfoList(IEnumerable<TableInfo> tables)
+		public DatabaseExplorerInfoList(IEnumerable<TableInfo> tables, IEnumerable<StoredProcedureInfo> routines)
 		{
 			_tables = tables;
+			_routines = routines;
 		}
 
 		public DatabaseExplorerInfoList(DB2Properties properties)
-			: this(new TableInfoList(properties))
+			: this(new TableInfoList(properties), new StoredProcedureInfoList(properties))
 		{
 		}
 
@@ -31,12 +34,61 @@ namespace DB2DataContextDriver
 
 		public IEnumerator<ExplorerItem> GetEnumerator()
 		{
-			return GetTables(_tables).GetEnumerator();
+			yield return new ExplorerItem("Tables", ExplorerItemKind.Category, ExplorerIcon.Table)
+			{
+				IsEnumerable = true,
+				Children = GetTables(_tables).ToList()
+			};
+
+			yield return new ExplorerItem("Stored Procedures", ExplorerItemKind.Category, ExplorerIcon.StoredProc)
+			{
+				IsEnumerable = true,
+				Children = GetRoutines(_routines).ToList()
+			};
+
+			yield break;
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()
 		{
 			return GetEnumerator();
+		}
+
+		private static IEnumerable<ExplorerItem> GetRoutines(string connectionString, string schema)
+		{
+			using (var routines = new StoredProcedureInfoList(connectionString, schema))
+			{
+				return GetRoutines(routines);
+			}
+		}
+
+		private static IEnumerable<ExplorerItem> GetRoutines(IEnumerable<StoredProcedureInfo> routines)
+		{
+			foreach (var routine in routines)
+			{
+				yield return new ExplorerItem(routine.RoutineName, ExplorerItemKind.QueryableObject, ExplorerIcon.StoredProc)
+				{
+					Tag = routine,
+					DragText = $"{routine.RoutineName}", // TODO: Make this work.
+					ToolTipText = routine.RoutineName,
+					SqlName = $"{routine.RoutineName}", // TODO: Make this work.
+					IsEnumerable = false,
+					Children = new List<ExplorerItem>(
+						routine.GetParameters().Select(x =>
+							new ExplorerItem(string.Format("{0} ({1})", x.Name, x.DotNetType), ExplorerItemKind.Parameter, ExplorerIcon.Parameter)
+							{
+								SqlName = string.Format("{0} ({1}, {2})", x.Name, x.DB2Type, x.DB2Modifier)
+							}).Concat(
+							new[] {
+								new ExplorerItem("Get Contents", ExplorerItemKind.ReferenceLink, ExplorerIcon.View)
+								{
+									DragText = routine.RoutineDefinition,
+									ToolTipText = "Drag to the editor to get the contents of the stored procedure.",
+									IsEnumerable = false
+								}}))
+				};
+			}
+			yield break;
 		}
 
 		private static IEnumerable<ExplorerItem> GetTables(string connectionString, string schema)

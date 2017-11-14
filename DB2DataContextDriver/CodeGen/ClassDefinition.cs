@@ -29,7 +29,7 @@ namespace DB2DataContextDriver.CodeGen
 			{
 				foreach (var method in Methods)
 				{
-					sb.AppendLine(method.ToString());
+					sb.AppendLine("\t" + method.ToString());
 				}
 			}
 
@@ -37,7 +37,7 @@ namespace DB2DataContextDriver.CodeGen
 			{
 				foreach (var property in Properties)
 				{
-					sb.AppendLine(property.ToString());
+					sb.AppendLine("\t" + property.ToString());
 				}
 			}
 

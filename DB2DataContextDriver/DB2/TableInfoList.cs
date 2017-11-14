@@ -58,16 +58,11 @@ namespace DB2DataContextDriver.DB2
 						_data = new DataTable();
 						a.Fill(_data);
 					}
-
-					//using (var reader = cm.ExecuteReader())
-					//{
-					//	_data.Load(reader);
-					//}
 				}
 			}
 		}
 
-		public TableInfoList(DB2Properties properties)
+		public TableInfoList(IDB2Properties properties)
 			: this(properties.GetConnectionString(), properties.Schema)
 		{
 		}
@@ -80,27 +75,12 @@ namespace DB2DataContextDriver.DB2
 		{
 			if (!_disposedValue)
 			{
-				//_command.Dispose();
-				//_command = null;
-
-				//_connection.Close();
-				//_connection.Dispose();
-				//_connection = null;
-
 				_disposedValue = true;
 			}
 		}
 
 		public IEnumerator<TableInfo> GetEnumerator()
 		{
-			//using (var reader = _command.ExecuteReader())
-			//{
-			//	while (reader.Read())
-			//	{
-			//		yield return new TableInfo(_connection, reader);
-			//	}
-			//}
-
 			foreach (var tableGroup in _data.AsEnumerable().GroupBy(x => x.Field<string>("TBNAME")))
 			{
 				yield return new TableInfo(tableGroup);
