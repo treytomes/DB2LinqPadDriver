@@ -17,13 +17,13 @@ namespace DB2DataContextDriver.DB2
 			((?<Parameter>
 				\s*((?<ParameterModifier>IN|OUT|INOUT)\s+)?
 				(?<ParameterName>[\w\d_]+)\s+
-				(?<ParameterType>\w+(\(\d+(,\d+)?\))?)
+				(?<ParameterType>\w+\s*(\(\d+(,\d+)?\))?)
 			)\s*,)*
 
 			((?<Parameter>
 				\s*((?<ParameterModifier>IN|OUT|INOUT)\s+)?
 				(?<ParameterName>[\w\d_]+)\s+
-				(?<ParameterType>\w+(\(\d+(,\d+)?\))?)
+				(?<ParameterType>\w+\s*(\(\d+(,\d+)?\))?)
 			)\s*)*
 		)
 	)\)

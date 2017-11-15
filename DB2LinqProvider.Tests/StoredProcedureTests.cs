@@ -1,10 +1,6 @@
 ﻿using DB2DataContextDriver.DB2;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace DB2LinqProvider.Tests
@@ -19,13 +15,13 @@ namespace DB2LinqProvider.Tests
 			((?<Parameter>
 				\s*((?<ParameterModifier>IN|OUT|INOUT)\s+)?
 				(?<ParameterName>[\w\d_]+)\s+
-				(?<ParameterType>\w+(\(\d+(,\d+)?\))?)
+				(?<ParameterType>\w+\s*(\(\d+(,\d+)?\))?)
 			)\s*,)*
 
 			((?<Parameter>
 				\s*((?<ParameterModifier>IN|OUT|INOUT)\s+)?
 				(?<ParameterName>[\w\d_]+)\s+
-				(?<ParameterType>\w+(\(\d+(,\d+)?\))?)
+				(?<ParameterType>\w+\s*(\(\d+(,\d+)?\))?)
 			)\s*)*
 		)
 	)\)
@@ -40,7 +36,7 @@ namespace DB2LinqProvider.Tests
 		[Fact]
 		public void Can_generate_functions()
 		{
-			var list = new StoredProcedureInfoList("Server=EESIBM02;DATABASE=CUSDTA;PWD=db2power;UID=DB2INST1;Persist Security Info=True;Connection Lifetime=60;Connection Reset=false;Min Pool Size=0;Max Pool Size=100;Pooling=true;", "DB2INST1");
+			var list = new StoredProcedureInfoList("Server=EESIBM02;DATABASE=INVENT;PWD=db2power;UID=DB2INST1;Persist Security Info=True;Connection Lifetime=60;Connection Reset=false;Min Pool Size=0;Max Pool Size=100;Pooling=true;", "DB2INST1");
 
 			foreach (var item in list)
 			{
