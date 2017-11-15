@@ -21,7 +21,7 @@ namespace DB2DataContextDriver
 			var routines = new StoredProcedureInfoList(properties);
 			var schema = new DatabaseExplorerInfoList(tables, routines).ToList();
 
-			var code = new DataContextCodeGenerator(tables, nameSpace, typeName).Generate();
+			var code = new DataContextCodeGenerator(tables, routines, nameSpace, typeName).Generate();
 			BuildAssembly(code, name, dllPath);
 
 			return schema;
@@ -34,7 +34,7 @@ namespace DB2DataContextDriver
 			using (var codeProvider = new CSharpCodeProvider(new Dictionary<string, string>() { { "CompilerVersion", "v4.0" } }))
 			{
 				//var options = new CompilerParameters(new[] { "System.dll", "System.Core.dll", "System.Data.dll", Path.Combine(dllPath, "IBM.Data.DB2.dll"), Path.Combine(dllPath, "linq2db.dll") }, name.CodeBase, true);
-				var options = new CompilerParameters(new[] { "System.Core.dll", "System.Data.dll", Path.Combine(dllPath, "IBM.Data.DB2.dll"), Path.Combine(dllPath, "linq2db.dll") }, name.CodeBase, true);
+				var options = new CompilerParameters(new[] { "System.dll", "System.Core.dll", "System.Data.dll", Path.Combine(dllPath, "IBM.Data.DB2.dll"), Path.Combine(dllPath, "linq2db.dll") }, name.CodeBase, true);
 				results = codeProvider.CompileAssemblyFromSource(options, code);
 			}
 			if (results.Errors.Count > 0)

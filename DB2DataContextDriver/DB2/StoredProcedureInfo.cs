@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace DB2DataContextDriver.DB2
 {
@@ -37,6 +39,9 @@ namespace DB2DataContextDriver.DB2
 		{
 			RoutineName = routineName;
 			RoutineDefinition = routineDefinition;
+
+			var parameters = string.Join(", ", GetParameters().Select(param => $"{param.DotNetModifier} {param.DotNetType} {param.Name}"));
+			DotNetDragText = new StringBuilder().Append($"{RoutineName}(").Append(parameters).AppendLine(")").ToString();
 		}
 
 		#endregion
@@ -46,6 +51,8 @@ namespace DB2DataContextDriver.DB2
 		public string RoutineName { get; }
 
 		public string RoutineDefinition { get; }
+
+		public string DotNetDragText { get; }
 
 		#endregion
 

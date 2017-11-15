@@ -29,22 +29,33 @@ namespace DB2DataContextDriver.DB2
 
 			if (match.Groups["ParameterModifier"].Success)
 			{
-				DB2Modifier = match.Groups["ParameterModifier"].Value;
+				DirectionText = match.Groups["ParameterModifier"].Value;
 			}
 			else
 			{
-				DB2Modifier = "IN";
+				DirectionText = "IN";
 			}
+
+			if (DirectionText == "IN")
+			{
+				Direction = System.Data.ParameterDirection.Input;
+			}
+			if (DirectionText == "INOUT")
+			{
+				Direction = System.Data.ParameterDirection.InputOutput;
+			}
+			if (DirectionText == "OUT")
+			{
+				Direction = System.Data.ParameterDirection.Output;
+			}
+
+
 			Name = match.Groups["ParameterName"].Value;
 
 			DB2Type = match.Groups["ParameterType"].Value;
 
 			DotNetType = DB2TypeFactory.GetTypeFromDB2(DB2Type);
-			var dotNetModifier = DB2TypeFactory.GetModifierFromDB2(DB2Modifier);
-			if (!string.IsNullOrWhiteSpace(dotNetModifier))
-			{
-				DotNetType += $" {dotNetModifier}";
-			}
+			DotNetModifier = DB2TypeFactory.GetModifierFromDB2(DirectionText);
 		}
 
 		#endregion
@@ -53,11 +64,15 @@ namespace DB2DataContextDriver.DB2
 
 		public string Name { get; }
 
-		public string DB2Modifier { get; }
+		public string DirectionText { get; }
+
+		public System.Data.ParameterDirection Direction { get; }
 
 		public string DB2Type { get; }
 
 		public string DotNetType { get; }
+
+		public string DotNetModifier { get; }
 
 		#endregion
 	}

@@ -10,6 +10,7 @@ namespace DB2DataContextDriver.CodeGen
 		#region Fields
 
 		private IEnumerable<TableInfo> _tables;
+		private IEnumerable<StoredProcedureInfo> _routines;
 		private string _nameSpace;
 		private string _typeName;
 
@@ -17,9 +18,10 @@ namespace DB2DataContextDriver.CodeGen
 
 		#region Constructors
 
-		public DataContextCodeGenerator(IEnumerable<TableInfo> tables, string nameSpace, string typeName)
+		public DataContextCodeGenerator(IEnumerable<TableInfo> tables, IEnumerable<StoredProcedureInfo> routines, string nameSpace, string typeName)
 		{
 			_tables = tables;
+			_routines = routines;
 			_nameSpace = nameSpace;
 			_typeName = typeName;
 		}
@@ -81,6 +83,13 @@ namespace DB2DataContextDriver.CodeGen
 			{
 				ctxDef.Methods.Add($"public LinqToDB.ITable<{table.Name}> {table.Name} {{ get {{ return GetTable<{table.Name}>(); }} }}");
 			}
+
+			// Create a method for each stored procedure.
+			foreach (var routine in _routines)
+			{
+				ctxDef.Methods.Add(GenerateMethod(routine));
+			}
+
 			return ctxDef;
 		}
 
@@ -140,6 +149,56 @@ namespace DB2DataContextDriver.CodeGen
 				property.Attributes.Add("[LinqToDB.Mapping.PrimaryKey]");
 			}
 			return property;
+		}
+
+		private string GenerateMethod(StoredProcedureInfo routine)
+		{
+			var sb = new StringBuilder();
+
+			//sb.Append($"public object {routine.RoutineName}(");
+
+			//// Generate the parameter list.
+			//foreach (var param in parameters)
+			//{
+			//	sb.Append($"{param.DotNetModifier} {param.DotNetType} {param.Name}");
+			//	if (param != parameters.Last())
+			//	{
+			//		sb.Append(", ");
+			//	}
+			//}
+
+			sb.AppendLine($"public IBM.Data.DB2.DB2DataReader {routine.DotNetDragText} {{");
+
+			// Generate the method body.
+			sb.AppendLine($"\t\tusing (var cmd = new IBM.Data.DB2.DB2Command(\"{routine.RoutineName}\", Connection as IBM.Data.DB2.DB2Connection)) {{");
+			sb.AppendLine("\t\t\tcmd.CommandType = System.Data.CommandType.StoredProcedure;");
+
+			var parameters = routine.GetParameters().ToArray();
+			for (var index = 0; index < parameters.Length; index++)
+			{
+				if (parameters[index].Direction == System.Data.ParameterDirection.Output)
+				{
+					sb.AppendLine($"\t\t\tcmd.Parameters.Add(new IBM.Data.DB2.DB2Parameter(\"{parameters[index].Name}\", IBM.Data.DB2.DB2Type.{DB2TypeFactory.GetDB2TypeFromString(parameters[index].DB2Type)})).Direction = System.Data.ParameterDirection.{parameters[index].Direction};");
+					//sb.AppendLine($"\tcmd.Parameters[cmd.Parameters.Count - 1].Direction = System.Data.ParameterDirection.{parameters[index].Direction};");
+				}
+				else
+				{
+					sb.AppendLine($"\t\t\tcmd.Parameters.Add(new IBM.Data.DB2.DB2Parameter(\"{parameters[index].Name}\", {parameters[index].Name})).Direction = System.Data.ParameterDirection.{parameters[index].Direction};");
+					//sb.AppendLine($"\tcmd.Parameters[cmd.Parameters.Count - 1].Direction = System.Data.ParameterDirection.{parameters[index].Direction};");
+				}
+			}
+
+			sb.AppendLine("\t\t\tvar reader = cmd.ExecuteReader();");
+
+			var outputParams = parameters.Where(x => x.Direction != System.Data.ParameterDirection.Input);
+			foreach (var param in outputParams)
+			{
+				sb.AppendLine($"\t\t\t{param.Name}=({param.DotNetType})(cmd.Parameters[\"{param.Name}\"].Value);");
+			}
+
+			sb.AppendLine("\t\t\treturn reader; } }");
+
+			return sb.ToString();
 		}
 
 		#endregion

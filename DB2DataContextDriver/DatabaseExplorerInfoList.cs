@@ -69,15 +69,15 @@ namespace DB2DataContextDriver
 				yield return new ExplorerItem(routine.RoutineName, ExplorerItemKind.QueryableObject, ExplorerIcon.StoredProc)
 				{
 					Tag = routine,
-					DragText = $"{routine.RoutineName}", // TODO: Make this work.
+					DragText = $"{routine.DotNetDragText}",
 					ToolTipText = routine.RoutineName,
-					SqlName = $"{routine.RoutineName}", // TODO: Make this work.
+					SqlName = $"{routine.RoutineName}",
 					IsEnumerable = false,
 					Children = new List<ExplorerItem>(
 						routine.GetParameters().Select(x =>
-							new ExplorerItem(string.Format("{0} ({1})", x.Name, x.DotNetType), ExplorerItemKind.Parameter, ExplorerIcon.Parameter)
+							new ExplorerItem(string.Format("{0} ({1} {2})", x.Name, x.DotNetModifier, x.DotNetType), ExplorerItemKind.Parameter, ExplorerIcon.Parameter)
 							{
-								SqlName = string.Format("{0} ({1}, {2})", x.Name, x.DB2Type, x.DB2Modifier)
+								SqlName = string.Format("{0} ({1}, {2})", x.Name, x.DB2Type, x.DirectionText)
 							}).Concat(
 							new[] {
 								new ExplorerItem("Get Contents", ExplorerItemKind.ReferenceLink, ExplorerIcon.View)
