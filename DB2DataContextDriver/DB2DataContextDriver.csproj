@@ -43,13 +43,11 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>\\fileserver01\programmer01\Builds\Assemblies\4.0-Debug\IBM.Data.DB2.dll</HintPath>
     </Reference>
-    <Reference Include="linq2db, Version=1.9.0.0, Culture=neutral, PublicKeyToken=f19f8aed7feff67e, processorArchitecture=MSIL">
-      <HintPath>..\packages\linq2db.1.9.0\lib\net45\linq2db.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="linq2db, Version=1.10.2.0, Culture=neutral, PublicKeyToken=f19f8aed7feff67e, processorArchitecture=MSIL">
+      <HintPath>..\packages\linq2db.1.10.2\lib\net45\linq2db.dll</HintPath>
     </Reference>
     <Reference Include="LINQPad, Version=1.0.0.0, Culture=neutral, PublicKeyToken=21353812cd2a2db5, processorArchitecture=MSIL">
-      <HintPath>..\packages\LINQPad.4.51.3\lib\net40\LINQPad.exe</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\LINQPad.5.26.1\lib\net40\LINQPad.exe</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -112,6 +110,7 @@
     <None Include="LinqToDB.Templates\LinqToDB.Sybase.ttinclude" />
     <None Include="LinqToDB.Templates\LinqToDB.Tools.ttinclude" />
     <None Include="LinqToDB.Templates\LinqToDB.ttinclude" />
+    <None Include="LinqToDB.Templates\MultipleFiles.ttinclude" />
     <None Include="LinqToDB.Templates\NotifyDataErrorInfo.ttinclude" />
     <None Include="LinqToDB.Templates\NotifyPropertyChanged.ttinclude" />
     <None Include="LinqToDB.Templates\ObsoleteAttributes.ttinclude" />
